@@ -56,6 +56,10 @@ Skapa "shell"
 
 ### Ingress
 
+Lista befintliga helm repos:
+
+`helm repo list`
+
 Lägg till nginx-ingress helm repo:
 
 `helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx`
