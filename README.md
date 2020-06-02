@@ -6,23 +6,23 @@
 
 Skapa ny Helm chart:
 
-`helm create vassning2020`
+`helm create vassning-chart`
 
 Rensa ut "scaffoldade" templates:
 
-`rm -rf vassning2020/templates/*`
+`rm -rf vassning-chart/templates/*`
 
 Trunkera .Values filen:
 
-`:> vassning2020/values.yaml`
+`:> vassning-chart/values.yaml`
 
 Generera service:
 
-`kubectl create deployment vassning2020-nginx --dry-run=true --image=nginx --output yaml > vassning2020/templates/deploy.yaml`
+`kubectl create deployment nginx --dry-run=true --image=nginx --output yaml > vassning-chart/templates/deployment.yaml`
 
 Installera Helm release:
 
-`helm install vassning2020staging vassning2020`
+`helm install my-vassning-release vassning-chart`
 
 Lista Helm releases:
 
@@ -30,25 +30,29 @@ Lista Helm releases:
 
 Uppgradera Helm release
 
-`helm upgrade vassning2020staging vassning2020`
+`helm upgrade my-vassning-release vassning-chart`
 
 Ta bort Helm release
 
-`helm uninstall vassning2020staging vassning2020`
+`helm uninstall my-vassning-release vassning-chart`
 
 Uppgradera (eller installera vid behov) 
 
-`helm upgrade --install vassning2020staging vassning2020` 
+`helm upgrade --install my-vassning-release vassning-chart` 
 
 ### Services
 
 Generera service
 
-`kubectl create service clusterip vassning2020-nginx --tcp=80 --dry-run=true --output yaml > vassning2020/templates/service.yaml`
+`kubectl create service clusterip nginx --tcp=80 --dry-run=true --output yaml > vassning-chart/templates/service.yaml`
 
 Lista services
 
 `kubectl get svc`
+
+Skapa "shell"
+
+`kubectl run pod --image=alpine -it --rm --generator=run-pod/v1 sh`
 
 ### Ingress
 
