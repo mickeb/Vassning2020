@@ -67,3 +67,9 @@ Lägg till nginx-ingress helm repo:
 Installera ingress-nginx release:
 
 `helm install ingress-nginx ingress-nginx/ingress-nginx`
+
+### Helm diff
+
+Installera helm diff:
+
+`helm plugin install https://github.com/databus23/helm-diff --version master`
