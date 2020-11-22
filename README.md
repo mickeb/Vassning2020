@@ -3,8 +3,8 @@
 ## Kommandon
 
 ### 1. Start
-
-I `main.tf`
+1. Skapa mappen `TerraformDemo`
+2. Skapa filen `main.tf`
 
 ```
 terraform {
@@ -88,3 +88,31 @@ Kommentar: Men vi kan bättre
 1. Skapa `variables.tf` # Kommentar: Standardplats för variabler 
 2. Flytta in variabel deklarationen där.
 3. Skapa `terraform.tfvars` med innehållet: `image_id`
+
+### 4. Dynamiskt antal containers
+
+Skapa variabeln: `number_of_app_servers`
+
+# Kommenter: Ny datatyp number!
+ 
+```
+variable "number_of_app_servers" {
+  type = number
+  default = "2"
+}
+```
+
+1. Lägg till `count = var.number_of_app_servers` under resource
+2. Uppdatera name till: `"app-server-${count.index + 1}"`
+3. Uppdatera external port till `external = 8000 + count.index + 1`
+
+### 5. Input validering
+
+Lägg till:
+
+```
+  validation {
+    condition = var.number_of_app_servers > 1 && var.number_of_app_servers <= 10
+    error_message = "Number of app servers must be between 2 and 10."
+  }
+```
