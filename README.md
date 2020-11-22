@@ -19,7 +19,7 @@ provider "docker" {}
 
 resource "docker_image" "nginx" {
   name         = "nginx:latest"
-  keep_locally = false
+  keep_locally = true
 }
 
 resource "docker_container" "app-server-1" {
@@ -115,4 +115,51 @@ Lägg till:
     condition = var.number_of_app_servers > 1 && var.number_of_app_servers <= 10
     error_message = "Number of app servers must be between 2 and 10."
   }
+```
+
+### 6. Extrahera till module
+
+1. Skapa mappen `base_environment`
+2. Flytta samtliga filer in till `base_environment`
+3. Skapa ny `main.tf`
+3. Lägg till NYA variabler:
+
+```
+variable "environment_name" {
+  type = string
+}
+
+variable "port_range_start" {
+  type = number
+}
+```
+
+Klistra in:
+
+```
+module "sandbox" {
+    source = "./base_environment"
+
+    environment_name = "sandbox"
+    port_range_start = 8000
+
+    image_id = "nginx:alpine"
+    number_of_app_servers = 2
+}
+```
+
+Kör `terraform apply`
+
+Klistra in:
+
+```
+module "production" {
+    source = "./base_environment"
+
+    environment_name = "production"
+    port_range_start = 9000
+    
+    image_id = "nginx:alpine"
+    number_of_app_servers = 8
+}
 ```
