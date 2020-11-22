@@ -1,75 +1,90 @@
-# Vässning 2020
+# Vässning 2020 Terraform
 
 ## Kommandon
 
-### Helm
+### 1. Start
 
-Skapa ny Helm chart:
+I `main.tf`
 
-`helm create vassning-chart`
+```
+terraform {
+  required_providers {
+    docker = {
+      source = "terraform-providers/docker"
+    }
+  }
+}
 
-Rensa ut "scaffoldade" templates:
+provider "docker" {}
 
-`rm -rf vassning-chart/templates/*`
+resource "docker_image" "nginx" {
+  name         = "nginx:latest"
+  keep_locally = false
+}
 
-Trunkera .Values filen:
+resource "docker_container" "app-server-1" {
+  image = docker_image.nginx.latest
+  name  = "app-server-1"
+  ports {
+    internal = 80
+    external = 8000
+  }
+}
+```
+Kör:
 
-`:> vassning-chart/values.yaml`
+1. `terraform init` # Kommentar: Detta är som att köra maven sync, npm install etc 
+2. `terraform apply` # Kommentar: Planerar och kör
+3. `docker ps`
 
-Generera service:
+### 2. Lägg till container  
 
-`kubectl create deployment nginx --dry-run=true --image=nginx --output yaml > vassning-chart/templates/deployment.yaml`
 
-Installera Helm release:
+```
+resource "docker_container" "app-server-2" {
+  image = docker_image.nginx.latest
+  name  = "app-server-2"
+  ports {
+    internal = 80
+    external = 8001
+  }
+}
+```
 
-`helm install my-vassning-release vassning-chart`
+Kör:
 
-Lista Helm releases:
+1. `terraform apply`
+2. `docker ps`
 
-`helm list`
+### 3. Bryt ut variabel
 
-Uppgradera Helm release
+Kör:
 
-`helm upgrade my-vassning-release vassning-chart`
+1. `terraform destroy`
 
-Ta bort Helm release
+Lägg till högst upp:
 
-`helm uninstall my-vassning-release vassning-chart`
+```
+variable "image_id" {
+  type = string
+}
+```
 
-Uppgradera (eller installera vid behov) 
+Uppdatera:
 
-`helm upgrade --install my-vassning-release vassning-chart` 
+`name         = "nginx:latest"`
 
-### Services
+till
 
-Generera service
+`name         = docker_image.nginx.latest`
 
-`kubectl create service clusterip nginx --tcp=80 --dry-run=true --output yaml > vassning-chart/templates/service.yaml`
+Kör:
 
-Lista services
+1. `terraform apply`
+2. Skriv in variabel svaret
+   
+Kommentar: Men vi kan bättre
 
-`kubectl get svc`
-
-Skapa "shell"
-
-`kubectl run pod --image=alpine -it --rm --generator=run-pod/v1 sh`
-
-### Ingress
-
-Lista befintliga helm repos:
-
-`helm repo list`
-
-Lägg till nginx-ingress helm repo:
-
-`helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx`
-
-Installera ingress-nginx release:
-
-`helm install ingress-nginx ingress-nginx/ingress-nginx`
-
-### Helm diff
-
-Installera helm diff:
-
-`helm plugin install https://github.com/databus23/helm-diff --version master`
+1. Skapa `variables.tf` # Kommentar: Standardplats för variabler 
+2. Flytta in variabel deklarationen där.
+3. Skapa `terraform.tfvars` med innehållet: `image_id`
