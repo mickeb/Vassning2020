@@ -121,8 +121,9 @@ Lägg till:
 
 1. Skapa mappen `base_environment`
 2. Flytta samtliga filer in till `base_environment`
-3. Skapa ny `main.tf`
-3. Lägg till NYA variabler:
+3. Ta bort `provider "docker" {}` i modulens main 
+4. Skapa ny `main.tf`
+5. Lägg till NYA variabler i modulens main:
 
 ```
 variable "environment_name" {
@@ -137,6 +138,15 @@ variable "port_range_start" {
 Klistra in:
 
 ```
+terraform {
+  required_providers {
+    docker = {
+      source = "terraform-providers/docker"
+    }
+  }
+}
+
+
 module "sandbox" {
     source = "./base_environment"
 
@@ -147,7 +157,7 @@ module "sandbox" {
     number_of_app_servers = 2
 }
 ```
-
+Kör `terraform init`
 Kör `terraform apply`
 
 Klistra in:
@@ -162,4 +172,45 @@ module "production" {
     image_id = "nginx:alpine"
     number_of_app_servers = 8
 }
+```
+
+Kör `terraform apply`
+
+### 7. Bryt ut till variabel
+
+Lägg till `variables.tf` i root modulen med innehåll:
+
+```
+variable "environment_config" {
+  type = any
+}
+```
+
+Lägg till: `terraform.tfvars` i root modulen med innehåll:
+
+```
+environment_config = {
+    sandbox = {
+        image_id = "nginx-latest"
+        number_of_app_servers = 2
+        port_range_start = 8000
+    },
+    production = {
+        image_id = "nginx-alpine"
+        number_of_app_servers = 2
+        port_range_start = 10000
+    }
+}
+```
+
+Kör `terraform init`
+
+Lägg sedan till:
+
+```
+preproduction = {
+    image_id = "nginx-alpine"
+    number_of_app_servers = 2
+    port_range_start = 9000
+},
 ```
