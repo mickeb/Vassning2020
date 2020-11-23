@@ -93,7 +93,7 @@ Kommentar: Men vi kan bättre
 
 Skapa variabeln: `number_of_app_servers`
 
-# Kommenter: Ny datatyp number!
+Kommentar: Ny datatyp number!
  
 ```
 variable "number_of_app_servers" {
