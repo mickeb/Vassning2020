@@ -1,5 +1,13 @@
 # Vässning 2020 Terraform
 
+Installering:
+  Levereras som en enda körbarfil go
+  Mac OS = homebrew
+
+Editering:
+  VS Code + Plugin
+
+
 ## Kommandon
 
 ### 1. Start
@@ -36,6 +44,20 @@ Kör:
 1. `terraform init` # Kommentar: Detta är som att köra maven sync, npm install etc 
 2. `terraform apply` # Kommentar: Planerar och kör
 3. `docker ps`
+
+### 1.5 State
+
+1. Öppna upp statefilen.
+2. Visa kopplingen mellan terraforms id och dockers id
+3. Kommentera bort containern och kör plan - Terraform vill ta bort den.
+4. Ta bort containern i docker och kör plan - Terraform säger att allt är grönt
+
+### 1.6 Terraform rör bara resurser i sitt state
+
+1. Kör `terraform apply igen`
+2. Skapa en separat container med: `docker run --rm -d  nginx`
+3. Kör `terraform destroy`
+4. Containern finns kvar
 
 ### 2. Lägg till container  
 
