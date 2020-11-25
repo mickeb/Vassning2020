@@ -7,11 +7,10 @@ Installering:
 Editering:
   VS Code + Plugin
 
-
 ## Kommandon
 
 ### 1. Start
-1. Skapa mappen `TerraformDemo`
+1. Skapa mappen `TerraformDemo` i `VassningWorkSpace`
 2. Skapa filen `main.tf`
 
 ```
@@ -30,7 +29,7 @@ resource "docker_image" "nginx" {
   keep_locally = true
 }
 
-resource "docker_container" "app-server-1" {
+resource "docker_container" "app-server-1-container" {
   image = docker_image.nginx.latest
   name  = "app-server-1"
   ports {
@@ -49,13 +48,15 @@ Kör:
 
 1. Öppna upp statefilen.
 2. Visa kopplingen mellan terraforms id och dockers id
-3. Kommentera bort containern och kör plan - Terraform vill ta bort den.
-4. Ta bort containern i docker och kör plan - Terraform säger att allt är grönt
+3. Kommentera bort containern och kör `terraform apply` - Terraform vill ta bort den.
+4. Ta bort containern `docker rm -f <id>` i docker och kör `terraform apply` - Terraform säger att allt är grönt
+5. Avkommentera och kör `terraform apply`
+6. Ta bort containern `docker rm -f <id>` i docker och kör `terraform apply -refresh=true` - Terraform säger att allt är grönt
 
 ### 1.6 Terraform rör bara resurser i sitt state
 
 1. Kör `terraform apply igen`
-2. Skapa en separat container med: `docker run --rm -d  nginx`
+2. Skapa en separat container med: `docker run --rm -d nginx`
 3. Kör `terraform destroy`
 4. Containern finns kvar
 
@@ -110,23 +111,25 @@ Kommentar: Men vi kan bättre
 1. Skapa `variables.tf` # Kommentar: Standardplats för variabler 
 2. Flytta in variabel deklarationen där.
 3. Skapa `terraform.tfvars` med innehållet: `image_id`
+4. `terraform.tfvars` includeras automtiskt. det gär även filer på formen fil.auto.tfvars
 
 ### 4. Dynamiskt antal containers
 
-Skapa variabeln: `number_of_app_servers`
+Skapa variabeln: `app_server_count`
 
 Kommentar: Ny datatyp number!
  
 ```
-variable "number_of_app_servers" {
+variable "app_server_count" {
   type = number
   default = "2"
 }
 ```
 
-1. Lägg till `count = var.number_of_app_servers` under resource
+1. Lägg till `count = var.app_server_count` under resource
 2. Uppdatera name till: `"app-server-${count.index + 1}"`
 3. Uppdatera external port till `external = 8000 + count.index + 1`
+4. Uppdatera namnet på resursen!
 
 ### 5. Input validering
 
@@ -134,21 +137,23 @@ Lägg till:
 
 ```
   validation {
-    condition = var.number_of_app_servers > 1 && var.number_of_app_servers <= 10
+    condition = var.app_servers_count > 1 && var.app_servers_count <= 10
     error_message = "Number of app servers must be between 2 and 10."
   }
 ```
 
 ### 6. Extrahera till module
 
-1. Skapa mappen `base_environment`
-2. Flytta samtliga filer in till `base_environment`
+KÖR: `terraform `
+
+1. Skapa mappen `base_env`
+2. Flytta samtliga filer in till `base_env`
 3. Ta bort `provider "docker" {}` i modulens main 
-4. Skapa ny `main.tf`
+4. Skapa ny `main.tf` och `variables.tf`
 5. Lägg till NYA variabler i modulens main:
 
 ```
-variable "environment_name" {
+variable "env_name" {
   type = string
 }
 
@@ -170,13 +175,13 @@ terraform {
 
 
 module "sandbox" {
-    source = "./base_environment"
+    source = "./base_env"
 
-    environment_name = "sandbox"
+    env_name = "sandbox"
     port_range_start = 8000
 
     image_id = "nginx:alpine"
-    number_of_app_servers = 2
+    app_server_count = 2
 }
 ```
 Kör `terraform init`
@@ -186,13 +191,13 @@ Klistra in:
 
 ```
 module "production" {
-    source = "./base_environment"
+    source = "./env_name"
 
     environment_name = "production"
     port_range_start = 9000
     
     image_id = "nginx:alpine"
-    number_of_app_servers = 8
+    app_server_count = 8
 }
 ```
 
@@ -211,19 +216,33 @@ variable "environment_config" {
 Lägg till: `terraform.tfvars` i root modulen med innehåll:
 
 ```
-environment_config = {
+env_config = {
     sandbox = {
         image_id = "nginx-latest"
-        number_of_app_servers = 2
+        app_server_count = 2
         port_range_start = 8000
     },
     production = {
         image_id = "nginx-alpine"
-        number_of_app_servers = 2
+        app_server_count = 2
         port_range_start = 10000
     }
 }
 ```
+Byt ut till en "env" modul
+
+```
+module "env" {
+  for_each = var.env_config
+
+  source           = "./base_env"
+  env_name         = each.key
+  port_range_start = each.value["port_range_start"]
+  app_server_count = each.value["app_server_count"]
+}
+
+```
+
 
 Kör `terraform init`
 
@@ -236,3 +255,5 @@ preproduction = {
     port_range_start = 9000
 },
 ```
+
+Nämn anledningen till att vi använder any som typ. 
