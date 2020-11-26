@@ -40,7 +40,7 @@ resource "docker_container" "app-server-1-container" {
 ```
 Kör:
 
-1. `terraform init` # Kommentar: Detta är som att köra maven sync, npm install etc 
+1. `terraform init` # Kommentar: Detta är som att köra maven sync dependencies, npm install etc
 2. `terraform apply` # Kommentar: Planerar och kör
 3. `docker ps`
 
